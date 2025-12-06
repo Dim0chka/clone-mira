@@ -6,13 +6,22 @@ export interface LoginCredentials {
   rememberMe?: boolean
 }
 
-export interface RegisterCredentials extends LoginCredentials {
+export interface RegisterCredentials {
+  email: string
+  password: string
   name: string
-  confirmPassword: string
+  confirmPassword?: string // только для валидации на фронте
 }
 
-export interface AuthResponse {
+// Ответ от POST /auth/login
+export interface LoginResponse {
   user: User
-  token: string
-  expiresIn: number
+  access_token: string
+  refresh_token: string
+}
+
+// Ответ от POST /auth/refresh
+export interface TokensResponse {
+  access_token: string
+  refresh_token: string
 }
