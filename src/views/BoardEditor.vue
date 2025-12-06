@@ -206,8 +206,6 @@ const autoSaveStatus = ref('Сохранено')
 const tools: Tool[] = [
   { id: 'select', icon: 'bi bi-cursor', title: 'Выделение' },
   { id: 'sticker', icon: 'bi bi-sticky', title: 'Стикер' },
-  { id: 'text', icon: 'bi bi-type', title: 'Текст' },
-  { id: 'shape', icon: 'bi bi-square', title: 'Фигура' },
 ]
 
 const selectedSticker = computed(() => {

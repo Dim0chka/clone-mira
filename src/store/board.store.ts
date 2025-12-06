@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Board, Sticker } from '@/types'
 import type { CreateBoardData, UpdateStickerData } from '@/types/board.types'
-import { boardApi, stickerApi } from '@/api/boards'
+import { boardApi } from '@/api/boards'
+import { stickerApi } from '@/api/stickers'
 import { useAuthStore } from './auth.store'
 
 export const useBoardStore = defineStore('board', () => {
@@ -149,7 +150,7 @@ export const useBoardStore = defineStore('board', () => {
   // Действия с совместным доступом
   const shareBoard = async (boardId: string, userId: string, permission: 'view' | 'edit') => {
     try {
-      await boardApi.share(boardId, { userId, permission })
+      await boardApi.share(boardId, { userId })
       await fetchBoard(boardId)
     } catch (err: any) {
       error.value = err.message

@@ -16,62 +16,40 @@
     @mouseup="handleMouseUp"
     @contextmenu.prevent="handleContextMenu"
   >
-    <!-- Стикеры -->
-    <Sticker
-      v-for="sticker in stickers"
-      :key="sticker.id"
-      :sticker="sticker"
-      :is-selected="selectedStickerId === sticker.id"
-      :is-dragging="uiStore.isDragging"
-      :zoom-level="zoomLevel"
-      :readonly="readonly"
-      @select="handleStickerSelect"
-      @drag-start="handleDragStart"
-      @drag="handleDrag"
-      @drag-end="handleDragEnd"
-      @resize="handleResize"
-      @update="handleStickerUpdate"
-    />
-    
-    <!-- Сетка координат -->
-    <div 
-      v-if="showCoordinates"
-      class="coordinates position-fixed bottom-0 end-0 bg-dark text-white px-2 py-1 rounded-top-start small"
-    >
-      X: {{ mouseX }}, Y: {{ mouseY }}
+        <!-- Стикеры -->
+        <Sticker
+        v-for="sticker in stickers"
+        :key="sticker.id"
+        :sticker="sticker"
+        :is-selected="selectedStickerId === sticker.id"
+        :is-dragging="uiStore.isDragging"
+        :zoom-level="zoomLevel"
+        :readonly="readonly"
+        @select="handleStickerSelect"
+        @drag-start="handleDragStart"
+        @drag="handleDrag"
+        @drag-end="handleDragEnd"
+        @resize="handleResize"
+        @update="handleStickerUpdate"
+        />
+        
+        <!-- Сетка координат -->
+        <div 
+        v-if="showCoordinates"
+        class="coordinates position-fixed bottom-0 end-0 bg-dark text-white px-2 py-1 rounded-top-start small"
+        >
+        X: {{ mouseX }}, Y: {{ mouseY }}
+        </div>
+        
+        <!-- Подсказка при выборе инструмента -->
+        <div 
+        v-if="activeTool === 'sticker' && !isCreatingSticker && !readonly"
+        class="tool-hint position-fixed bottom-0 start-0 bg-primary text-white px-3 py-2 rounded-top-end small"
+        >
+        <i class="bi bi-mouse me-2"></i>
+        Кликните на холсте, чтобы добавить стикер
+        </div>
     </div>
-    
-    <!-- Подсказка при выборе инструмента -->
-    <div 
-      v-if="activeTool === 'sticker' && !isCreatingSticker && !readonly"
-      class="tool-hint position-fixed bottom-0 start-0 bg-primary text-white px-3 py-2 rounded-top-end small"
-    >
-      <i class="bi bi-mouse me-2"></i>
-      Кликните на холсте, чтобы добавить стикер
-    </div>
-    
-    <!-- Сообщение о режиме только для чтения -->
-    <div 
-      v-if="readonly"
-      class="readonly-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-      style="background-color: rgba(255, 255, 255, 0.7); z-index: 1000; pointer-events: none;"
-    >
-      <div class="bg-white p-4 rounded shadow text-center">
-        <i class="bi bi-eye display-4 text-muted mb-3"></i>
-        <h5 class="mb-2">Режим просмотра</h5>
-        <p class="text-muted mb-0">Эта доска доступна вам только для просмотра</p>
-      </div>
-    </div>
-    
-    <!-- Предпросмотр стикера при создании -->
-    <div
-      v-if="isCreatingSticker && previewPosition && !readonly"
-      class="sticker-preview position-absolute"
-      :style="previewStyle"
-    >
-      <div class="sticker-preview-content"></div>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
