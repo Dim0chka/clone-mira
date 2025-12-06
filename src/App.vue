@@ -1,30 +1,57 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div id="app" class="min-vh-100 d-flex flex-column">
+    <!-- <AppHeader v-if="!isAuthPage" /> -->
+    <AppHeader />
+
+    <div class="d-flex flex-grow-1">
+      <!-- <Sidebar v-if="!isAuthPage && showSidebar" /> -->
+      <Sidebar v-if="showSidebar" />
+      
+      <main class="flex-grow-1">
+        <router-view v-slot="{ Component }">
+          <suspense>
+            <component :is="Component" />
+            <template #fallback>
+              <div class="d-flex justify-content-center align-items-center min-vh-100">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Загрузка...</span>
+                </div>
+              </div>
+            </template>
+          </suspense>
+        </router-view>
+      </main>
+    </div>
+    
+    <footer class="bg-light border-top py-3">
+      <div class="container">
+        <div class="text-center text-muted small">
+          © 2024 Miro Clone. Все права защищены.
+        </div>
+      </div>
+    </footer>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import Sidebar from '@/components/layout/Sidebar.vue'
+
+const route = useRoute()
+
+// const isAuthPage = computed(() => 
+//   route.name === 'login' || route.name === 'register'
+// )
+
+const showSidebar = computed(() => 
+  route.name !== 'board' && route.name !== 'shared-board'
+)
+</script>
+
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+#app {
+  background-color: #f8f9fa;
 }
 </style>
