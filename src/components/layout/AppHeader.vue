@@ -25,11 +25,9 @@
         <div class="navbar-nav me-auto">
           <div class="nav-item search-container" style="max-width: 400px;">
             <div class="input-group">
-              <span class="input-group-text bg-light border-0">
-                <i class="bi bi-search text-muted"></i>
-              </span>
               <input
                 type="search"
+                hidden
                 class="form-control border-0 bg-light"
                 placeholder="Поиск досок, стикеров..."
               >
@@ -86,22 +84,6 @@
               <i class="bi bi-chevron-down ms-1"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <router-link to="/dashboard" class="dropdown-item">
-                  <i class="bi bi-speedometer2 me-2"></i> Мои доски
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/profile" class="dropdown-item">
-                  <i class="bi bi-person me-2"></i> Профиль
-                </router-link>
-              </li>
-              <li>
-                <a href="#" class="dropdown-item">
-                  <i class="bi bi-gear me-2"></i> Настройки
-                </a>
-              </li>
-              <li><hr class="dropdown-divider"></li>
               <li>
                 <button @click="handleLogout" class="dropdown-item text-danger">
                   <i class="bi bi-box-arrow-right me-2"></i> Выйти

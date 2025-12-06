@@ -1,11 +1,8 @@
 <template>
   <div id="app" class="min-vh-100 d-flex flex-column">
-    <!-- <AppHeader v-if="!isAuthPage" /> -->
-    <AppHeader />
+    <AppHeader v-if="!isAuthPage" />
 
-    <div class="d-flex flex-grow-1">
-      <!-- <Sidebar v-if="!isAuthPage && showSidebar" /> -->
-      <Sidebar v-if="showSidebar" />
+    <div class="d-flex">
       
       <main class="flex-grow-1">
         <router-view v-slot="{ Component }">
@@ -37,16 +34,11 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
 
 const route = useRoute()
 
-// const isAuthPage = computed(() => 
-//   route.name === 'login' || route.name === 'register'
-// )
-
-const showSidebar = computed(() => 
-  route.name !== 'board' && route.name !== 'shared-board'
+const isAuthPage = computed(() => 
+  route.name === 'login' || route.name === 'register'
 )
 </script>
 

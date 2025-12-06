@@ -12,14 +12,6 @@
           </div>
           <div class="d-flex gap-2">
             <button 
-              class="btn btn-outline-warning"
-              @click="resetStubData"
-              title="Сбросить демо-данные"
-              v-if="isDemo"
-            >
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
-            <button 
               class="btn btn-primary"
               @click="showCreateModal = true"
             >

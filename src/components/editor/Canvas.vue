@@ -9,6 +9,7 @@
       transformOrigin: '0 0',
       width: `${canvasWidth}px`,
       height: `${canvasHeight}px`,
+      cursor: readonly ? 'default' : (activeTool === 'sticker' ? 'crosshair' : 'default')
     }"
     @click="handleCanvasClick"
     @mousemove="handleMouseMove"
@@ -23,6 +24,7 @@
       :is-selected="selectedStickerId === sticker.id"
       :is-dragging="uiStore.isDragging"
       :zoom-level="zoomLevel"
+      :readonly="readonly"
       @select="handleStickerSelect"
       @drag-start="handleDragStart"
       @drag="handleDrag"
@@ -41,11 +43,33 @@
     
     <!-- Подсказка при выборе инструмента -->
     <div 
-      v-if="uiStore.activeTool === 'sticker'"
+      v-if="activeTool === 'sticker' && !isCreatingSticker && !readonly"
       class="tool-hint position-fixed bottom-0 start-0 bg-primary text-white px-3 py-2 rounded-top-end small"
     >
       <i class="bi bi-mouse me-2"></i>
       Кликните на холсте, чтобы добавить стикер
+    </div>
+    
+    <!-- Сообщение о режиме только для чтения -->
+    <div 
+      v-if="readonly"
+      class="readonly-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      style="background-color: rgba(255, 255, 255, 0.7); z-index: 1000; pointer-events: none;"
+    >
+      <div class="bg-white p-4 rounded shadow text-center">
+        <i class="bi bi-eye display-4 text-muted mb-3"></i>
+        <h5 class="mb-2">Режим просмотра</h5>
+        <p class="text-muted mb-0">Эта доска доступна вам только для просмотра</p>
+      </div>
+    </div>
+    
+    <!-- Предпросмотр стикера при создании -->
+    <div
+      v-if="isCreatingSticker && previewPosition && !readonly"
+      class="sticker-preview position-absolute"
+      :style="previewStyle"
+    >
+      <div class="sticker-preview-content"></div>
     </div>
   </div>
 </template>
@@ -53,34 +77,43 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useUIStore } from '@/store/ui.store'
+import type { PartialStickerData } from '@/types/sticker.types'
 import Sticker from './Sticker.vue'
 
-const props = defineProps<{
+interface Props {
   board: any
   selectedStickerId: string | null
-}>()
+  readonly?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  readonly: false
+})
 
 const emit = defineEmits<{
   stickerSelect: [stickerId: string | null]
   stickerCreate: [position: { x: number; y: number }]
-  stickerUpdate: [stickerId: string, updates: any]
+  stickerUpdate: [stickerId: string, updates: PartialStickerData]
 }>()
 
-const canvasRef = ref<HTMLElement>()
 const uiStore = useUIStore()
 
+const canvasRef = ref<HTMLElement>()
 const mouseX = ref(0)
 const mouseY = ref(0)
 const showCoordinates = ref(false)
 const dragStart = ref<{ x: number; y: number } | null>(null)
 const dragOffset = ref<{ x: number; y: number } | null>(null)
 const resizeDirection = ref<string | null>(null)
+const isCreatingSticker = ref(false)
+const previewPosition = ref<{ x: number; y: number } | null>(null)
 
 const canvasWidth = ref(2000)
 const canvasHeight = ref(2000)
 
 const zoomLevel = computed(() => uiStore.zoomLevel)
 const showGrid = computed(() => uiStore.showGrid)
+const activeTool = computed(() => uiStore.activeTool)
 
 const stickers = computed(() => 
   props.board?.stickers?.sort((a: any, b: any) => a.zIndex - b.zIndex) || []
@@ -95,13 +128,35 @@ const gridStyle = computed(() => {
   `
 })
 
+const previewStyle = computed(() => {
+  if (!previewPosition.value) return {}
+  
+  return {
+    left: `${previewPosition.value.x}px`,
+    top: `${previewPosition.value.y}px`,
+    width: '200px',
+    height: '150px',
+    backgroundColor: '#fff9c4',
+    opacity: 0.7,
+    borderRadius: '8px',
+    border: '2px dashed #3b82f6',
+    transform: `scale(${zoomLevel.value})`,
+    transformOrigin: '0 0',
+    pointerEvents: 'none',
+  }
+})
+
 const handleCanvasClick = (e: MouseEvent) => {
-  if (uiStore.activeTool === 'sticker') {
+  if (props.readonly) return
+  
+  if (activeTool.value === 'sticker') {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (rect) {
       const x = (e.clientX - rect.left) / zoomLevel.value
       const y = (e.clientY - rect.top) / zoomLevel.value
       emit('stickerCreate', { x, y })
+      isCreatingSticker.value = false
+      previewPosition.value = null
     }
   } else {
     emit('stickerSelect', null)
@@ -114,9 +169,18 @@ const handleMouseMove = (e: MouseEvent) => {
     mouseX.value = Math.round((e.clientX - rect.left) / zoomLevel.value)
     mouseY.value = Math.round((e.clientY - rect.top) / zoomLevel.value)
     showCoordinates.value = true
+    
+    // Обновляем позицию предпросмотра при создании стикера
+    if (activeTool.value === 'sticker' && !props.readonly) {
+      isCreatingSticker.value = true
+      previewPosition.value = {
+        x: mouseX.value - 100, // Центрируем предпросмотр
+        y: mouseY.value - 75,
+      }
+    }
   }
 
-  if (uiStore.isDragging && dragStart.value && dragOffset.value && props.selectedStickerId) {
+  if (uiStore.isDragging && dragStart.value && dragOffset.value && props.selectedStickerId && !props.readonly) {
     const newX = mouseX.value - dragOffset.value.x
     const newY = mouseY.value - dragOffset.value.y
     
@@ -139,14 +203,20 @@ const handleMouseUp = () => {
 
 const handleContextMenu = (e: MouseEvent) => {
   e.preventDefault()
-  // Можно добавить контекстное меню для стикеров
+  if (!props.readonly) {
+    // Можно добавить контекстное меню для стикеров
+  }
 }
 
 const handleStickerSelect = (stickerId: string) => {
   emit('stickerSelect', stickerId)
+  isCreatingSticker.value = false
+  previewPosition.value = null
 }
 
 const handleDragStart = (sticker: any, e: MouseEvent) => {
+  if (props.readonly) return
+  
   uiStore.isDragging = true
   const rect = canvasRef.value?.getBoundingClientRect()
   if (rect) {
@@ -165,7 +235,7 @@ const handleDragStart = (sticker: any, e: MouseEvent) => {
 }
 
 const handleDrag = (sticker: any, e: MouseEvent) => {
-  if (!uiStore.isDragging || !dragStart.value || !dragOffset.value) return
+  if (!uiStore.isDragging || !dragStart.value || !dragOffset.value || props.readonly) return
   
   const newX = mouseX.value - dragOffset.value.x
   const newY = mouseY.value - dragOffset.value.y
@@ -180,6 +250,8 @@ const handleDragEnd = (sticker: any) => {
 }
 
 const handleResize = (sticker: any, direction: string, delta: { x: number; y: number }) => {
+  if (props.readonly) return
+  
   const updates: any = {}
   
   const scaleX = delta.x / zoomLevel.value
@@ -225,13 +297,21 @@ const handleResize = (sticker: any, direction: string, delta: { x: number; y: nu
   emit('stickerUpdate', sticker.id, updates)
 }
 
-const handleStickerUpdate = (stickerId: string, updates: any) => {
+const handleStickerUpdate = (stickerId: string, updates: PartialStickerData) => {
+  if (props.readonly) return
   emit('stickerUpdate', stickerId, updates)
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Delete' && props.selectedStickerId) {
     // Удаление будет обработано в BoardEditor
+  }
+  
+  // Отмена создания стикера по Esc
+  if (e.key === 'Escape' && activeTool.value === 'sticker') {
+    isCreatingSticker.value = false
+    previewPosition.value = null
+    uiStore.setActiveTool('select')
   }
 }
 
@@ -265,6 +345,21 @@ onUnmounted(() => {
   z-index: 1000;
   opacity: 0.9;
   backdrop-filter: blur(2px);
+}
+
+.sticker-preview {
+  z-index: 999;
+  pointer-events: none;
+}
+
+.sticker-preview-content {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.readonly-overlay {
+  z-index: 1000;
 }
 
 .canvas::-webkit-scrollbar {
