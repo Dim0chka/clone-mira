@@ -51,58 +51,6 @@
                     Краткое описание цели или содержания доски
                   </div>
                 </div>
-                
-                <!-- Настройки -->
-                <div class="mb-4">
-                  <h6 class="mb-3">Настройки доски</h6>
-                  
-                  <div class="form-check form-switch mb-3">
-                    <input
-                      v-model="form.isPublic"
-                      class="form-check-input"
-                      type="checkbox"
-                      id="isPublic"
-                    >
-                    <label class="form-check-label" for="isPublic">
-                      Публичная доска
-                    </label>
-                    <div class="form-text">
-                      Публичные доски видны всем пользователям
-                    </div>
-                  </div>
-                  
-                  <div class="form-check form-switch">
-                    <input
-                      v-model="form.showGrid"
-                      class="form-check-input"
-                      type="checkbox"
-                      id="showGrid"
-                    >
-                    <label class="form-check-label" for="showGrid">
-                      Показывать сетку
-                    </label>
-                    <div class="form-text">
-                      Отображать сетку на фоне доски
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Шаблоны -->
-                <div class="mb-4">
-                  <h6 class="mb-3">Шаблоны</h6>
-                  <div class="d-flex flex-wrap gap-2">
-                    <button
-                      v-for="template in templates"
-                      :key="template.id"
-                      type="button"
-                      class="btn btn-outline-secondary btn-sm"
-                      :class="{ 'active': selectedTemplate === template.id }"
-                      @click="selectTemplate(template)"
-                    >
-                      {{ template.name }}
-                    </button>
-                  </div>
-                </div>
               </form>
             </div>
             
